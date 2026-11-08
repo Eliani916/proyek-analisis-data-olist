@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -77,6 +76,7 @@ if len(date_range) == 2:
     ].copy()
 else:
     filtered_df = df.copy()
+
 
 if filtered_df.empty:
     st.warning("Tidak terdapat data pada periode yang dipilih.")
@@ -240,6 +240,7 @@ st.divider()
 
 st.subheader("Performa Kategori Produk")
 
+
 category_df = filtered_df.groupby(
     "product_category_name_english"
 ).agg(
@@ -247,16 +248,20 @@ category_df = filtered_df.groupby(
     total_revenue=("price", "sum")
 ).reset_index()
 
+
 category_df = category_df[
     category_df["product_category_name_english"] != "unknown"
 ].copy()
+
 
 category_df = category_df.sort_values(
     "total_revenue",
     ascending=False
 )
 
+
 top_5_products = category_df.head(5).copy()
+
 
 bottom_5_products = (
     category_df.sort_values(
@@ -268,10 +273,92 @@ bottom_5_products = (
 )
 
 
+# Mengubah nama kategori untuk tampilan
+
+def format_category_name(name):
+    category_names = {
+        "health_beauty": "Health & Beauty",
+        "watches_gifts": "Watches & Gifts",
+        "bed_bath_table": "Bed, Bath & Table",
+        "sports_leisure": "Sports & Leisure",
+        "computers_accessories": "Computers & Accessories",
+        "furniture_decor": "Furniture & Decor",
+        "housewares": "Housewares",
+        "auto": "Automotive",
+        "toys": "Toys",
+        "cool_stuff": "Cool Stuff",
+        "garden_tools": "Garden Tools",
+        "perfumery": "Perfumery",
+        "telephony": "Telephony",
+        "baby": "Baby",
+        "electronics": "Electronics",
+        "stationery": "Stationery",
+        "pet_shop": "Pet Shop",
+        "computers": "Computers",
+        "small_appliances": "Small Appliances",
+        "fashion_bags_accessories": "Fashion Bags & Accessories",
+        "home_confort": "Home Comfort",
+        "home_appliances": "Home Appliances",
+        "fixed_telephony": "Fixed Telephony",
+        "musical_instruments": "Musical Instruments",
+        "construction_tools_construction": "Construction Tools",
+        "food_drink": "Food & Drink",
+        "agro_industry_and_commerce": "Agro Industry & Commerce",
+        "drinks": "Drinks",
+        "food": "Food",
+        "market_place": "Market Place",
+        "fashion_shoes": "Fashion Shoes",
+        "fashion_male_clothing": "Fashion Male Clothing",
+        "fashion_underwear_beach": "Fashion Underwear & Beach",
+        "fashion_sport": "Fashion Sport",
+        "fashion_childrens_clothes": "Fashion Children's Clothes",
+        "office_furniture": "Office Furniture",
+        "furniture_living_room": "Living Room Furniture",
+        "furniture_bedroom": "Bedroom Furniture",
+        "home_comfort_2": "Home Comfort 2",
+        "home_appliances_2": "Home Appliances 2",
+        "la_cuisine": "La Cuisine",
+        "christmas_supplies": "Christmas Supplies",
+        "party_supplies": "Party Supplies",
+        "luggage_accessories": "Luggage & Accessories",
+        "arts_and_craftmanship": "Arts & Craftsmanship",
+        "cds_dvds_musicals": "CDs, DVDs & Musicals",
+        "books_general_interest": "Books - General Interest",
+        "books_technical": "Technical Books",
+        "books_imported": "Imported Books",
+        "cine_photo": "Cinema & Photography",
+        "audio": "Audio",
+        "signaling_and_security": "Signaling & Security",
+        "security_and_services": "Security & Services",
+        "construction_tools_lights": "Construction Tools & Lights",
+        "construction_tools_safety": "Construction Tools & Safety",
+        "construction_tools_garden": "Construction Tools & Garden",
+        "construction_tools_screws": "Construction Tools & Screws",
+        "construction_tools_drills": "Construction Tools & Drills",
+        "small_appliances_home_oven_and_coffee": "Small Appliances - Oven & Coffee",
+        "small_appliances_home_laundry": "Small Appliances - Laundry",
+        "tablets_printing_image": "Tablets, Printing & Image",
+        "fashion_female_clothing": "Fashion Female Clothing",
+        "flowers": "Flowers",
+        "diapers_and_hygiene": "Diapers & Hygiene",
+        "home_comfort": "Home Comfort",
+    }
+
+    return category_names.get(
+        name,
+        name.replace("_", " ").title()
+    )
+
+
 def tampilkan_grafik_kategori(data, judul, key, ascending):
     st.markdown(f"**{judul}**")
 
     chart_data = data.copy()
+
+    chart_data["category_display"] = (
+        chart_data["product_category_name_english"]
+        .apply(format_category_name)
+    )
 
     pilihan = alt.selection_point(
         name=key,
@@ -287,7 +374,7 @@ def tampilkan_grafik_kategori(data, judul, key, ascending):
             axis=alt.Axis(format="~s")
         ),
         y=alt.Y(
-            "product_category_name_english:N",
+            "category_display:N",
             sort=alt.SortField(
                 field="total_revenue",
                 order="ascending" if ascending else "descending"
@@ -302,7 +389,7 @@ def tampilkan_grafik_kategori(data, judul, key, ascending):
         ),
         tooltip=[
             alt.Tooltip(
-                "product_category_name_english:N",
+                "category_display:N",
                 title="Kategori Produk"
             ),
             alt.Tooltip(
@@ -334,7 +421,9 @@ def tampilkan_grafik_kategori(data, judul, key, ascending):
             chart_data["product_category_name_english"] == nama
         ].iloc[0]
 
-        st.info(f"Kategori dipilih: {nama}")
+        st.info(
+            f"Kategori dipilih: {format_category_name(nama)}"
+        )
         st.write(
             f"Total pendapatan: BRL {detail['total_revenue']:,.2f}"
         )
@@ -370,10 +459,12 @@ st.divider()
 
 st.subheader("Analisis Karakteristik dan Segmentasi Pelanggan (RFM)")
 
+
 recent_date = (
     filtered_df["order_purchase_timestamp"].max()
     + pd.Timedelta(days=1)
 )
+
 
 rfm_df = filtered_df.groupby("customer_unique_id").agg(
     recency=(
@@ -384,11 +475,13 @@ rfm_df = filtered_df.groupby("customer_unique_id").agg(
     monetary=("price", "sum")
 ).reset_index()
 
+
 rfm_df["r_score"] = pd.qcut(
     rfm_df["recency"].rank(method="first"),
     5,
     labels=[5, 4, 3, 2, 1]
 ).astype(int)
+
 
 rfm_df["f_score"] = pd.cut(
     rfm_df["frequency"],
@@ -396,11 +489,13 @@ rfm_df["f_score"] = pd.cut(
     labels=[1, 2, 3, 4, 5]
 ).astype(int)
 
+
 rfm_df["m_score"] = pd.qcut(
     rfm_df["monetary"].rank(method="first"),
     5,
     labels=[1, 2, 3, 4, 5]
 ).astype(int)
+
 
 rfm_df["rfm_score"] = (
     rfm_df["r_score"]
@@ -433,6 +528,7 @@ segment_colors = {
     "Potential Customers": "#C7D2FE",
     "Need Attention": "#D3D3D3"
 }
+
 
 segment_order = [
     "Champions",
