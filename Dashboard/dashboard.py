@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -476,6 +477,16 @@ rfm_df = filtered_df.groupby("customer_unique_id").agg(
 ).reset_index()
 
 
+# Memeriksa jumlah pelanggan sebelum analisis RFM
+
+if len(rfm_df) < 5:
+    st.info(
+        "Analisis RFM membutuhkan minimal 5 pelanggan. "
+        "Silakan pilih rentang tanggal yang lebih luas."
+    )
+    st.stop()
+
+
 rfm_df["r_score"] = pd.qcut(
     rfm_df["recency"].rank(method="first"),
     5,
@@ -797,6 +808,7 @@ else:
     customer_detail = rfm_df[
         rfm_df["customer_segment"] == selected_segment
     ].copy()
+
 
 st.metric(
     "Jumlah Pelanggan",
